@@ -34,24 +34,13 @@ static int my_close(struct inode *i, struct file *f)
 static ssize_t my_read(struct file *f, char __user *buf, size_t len, loff_t *off)
 {
   printk(KERN_INFO "Driver: read()\n");
-	len = min(sizeof(in_buf) - *off, len);
-	if(len <= 0){
+	ssize_t rem = min(sizeof(in_buf) - *off, len);
+	
+	if(rem <= 0){
 		return 0;
 	}
-
-	if(*off + len >= BUF_SIZE){
-		printk(KERN_INFO "Warning: ch_drv read(): buffer overflow, cleaning...");
-		memset(in_buf, 0, sizeof(in_buf));
-		*off = 0;
-		ptr = 0;
-	}
-
-	if(*off + len >= BUF_SIZE){
-		printk(KERN_INFO "Error: too large buffer size");
-		return -EFAULT;
-	}
-
-	if(copy_to_user(buf, in_buf + *off, len)){
+	
+	if(copy_to_user(buf, in_buf + *off, rem)){
 		return -EFAULT;
 	}
 
@@ -63,10 +52,9 @@ static ssize_t my_read(struct file *f, char __user *buf, size_t len, loff_t *off
 static ssize_t my_write(struct file *f, const char __user *buf,  size_t len, loff_t *off)
 {
   printk(KERN_INFO "Driver: write()\n");
-	if(copy_from_user(stub_buf + *off, buf, len)){
+	if(copy_from_user(stub_buf, buf, len)){
 		return -EFAULT;
 	}
-	*off += len;
 	in_buf[ptr++] = len;
   return len;
 }
