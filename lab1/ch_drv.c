@@ -34,6 +34,7 @@ static int my_close(struct inode *i, struct file *f)
 static ssize_t my_read(struct file *f, char __user *buf, size_t len, loff_t *off)
 {
   printk(KERN_INFO "Driver: read()\n");
+	len = min(sizeof(in_buf) - *off, len);
 	if(len <= 0){
 		return 0;
 	}
