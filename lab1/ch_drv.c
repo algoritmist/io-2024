@@ -14,6 +14,7 @@ static struct class *cl;
 #define BUF_SIZE 2048
 
 char in_buf[BUF_SIZE];
+char stub_buf[BUF_SIZE];
 int ptr = 0;
 
 static int my_open(struct inode *i, struct file *f)
@@ -41,6 +42,7 @@ static ssize_t my_read(struct file *f, char __user *buf, size_t len, loff_t *off
 		printk(KERN_INFO "Warning: ch_drv read(): buffer overflow, cleaning...");
 		in_buf = memset(in_buf, 0, sizeof(in_buf));
 		*off = 0;
+		ptr = 0;
 	}
 
 	if(*off + len >= BUF_SIZE){
@@ -59,8 +61,8 @@ static ssize_t my_read(struct file *f, char __user *buf, size_t len, loff_t *off
 
 static ssize_t my_write(struct file *f, const char __user *buf,  size_t len, loff_t *off)
 {
-  printk(KERN_INFO "Driver: write()\n");	
-	if(copy_from_user(0, buf + *off, len)){
+  printk(KERN_INFO "Driver: write()\n");
+	if(copy_from_user(stub_buf, buf + *off, len)){
 		return -EFAULT;
 	}
 	*off += len;
