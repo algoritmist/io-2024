@@ -6,22 +6,19 @@
 #include <linux/fs.h>
 #include <linux/device.h>
 #include <linux/cdev.h>
-
 static dev_t first;
 static struct cdev c_dev; 
 static struct class *cl;
 
-#define BUF_SIZE 2048
+#define BUF_SIZE 16
 
-char in_buf[BUF_SIZE];
-char stub_buf[BUF_SIZE];
+static char in_buf[BUF_SIZE];
+static char help_buf[BUF_SIZE];
 int ptr = 0;
 
 static int my_open(struct inode *i, struct file *f)
 {
   printk(KERN_INFO "Driver: open()\n");
-	memset(in_buf, 0, sizeof(in_buf));
-	ptr = 0;
   return 0;
 }
 
@@ -31,31 +28,50 @@ static int my_close(struct inode *i, struct file *f)
   return 0;
 }
 
+void write_int(int x){
+  if(x == 0){
+    in_buf[ptr++] = ' '; 
+    return;
+  }
+  write_int(x / 10);
+  in_buf[ptr++] = x % 10 + 48;
+}
+
 static ssize_t my_read(struct file *f, char __user *buf, size_t len, loff_t *off)
 {
   printk(KERN_INFO "Driver: read()\n");
-	ssize_t rem = min(sizeof(in_buf) - *off, len);
-	
-	if(rem <= 0){
-		return 0;
-	}
-	
-	if(copy_to_user(buf, in_buf + *off, rem)){
+  if(*off){
+    return 0;
+  }
+
+  size_t real_len = min(len, sizeof(in_buf));
+
+	if(copy_to_user(buf, in_buf, real_len)){
 		return -EFAULT;
 	}
 
-	*off += len;
-
-  return len;
+  *off = real_len;
+  return real_len;
 }
 
 static ssize_t my_write(struct file *f, const char __user *buf,  size_t len, loff_t *off)
 {
   printk(KERN_INFO "Driver: write()\n");
-	if(copy_from_user(stub_buf, buf, len)){
+
+	if(copy_from_user(help_buf, buf, len)){
 		return -EFAULT;
 	}
-	in_buf[ptr++] = len;
+
+  int rem = BUF_SIZE - ptr;
+  if((1 << rem) < len){
+    printk("Achtung: overflow, cleaning buffer...");
+    memset(in_buf, 0, sizeof(in_buf));
+    ptr = 0;
+    rem = BUF_SIZE;
+  }
+
+  int count = snprintf(in_buf + ptr, rem, "%d ", (int) len);
+  ptr += count;
   return len;
 }
 
@@ -112,4 +128,3 @@ module_exit(ch_drv_exit);
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Author");
 MODULE_DESCRIPTION("The first kernel module");
-
