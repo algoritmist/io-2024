@@ -11,9 +11,16 @@ static dev_t first;
 static struct cdev c_dev; 
 static struct class *cl;
 
+#define BUF_SIZE 2048
+
+char in_buf[BUF_SIZE];
+int ptr = 0;
+
 static int my_open(struct inode *i, struct file *f)
 {
   printk(KERN_INFO "Driver: open()\n");
+	memset(in_buf, 0, sizeof(in_buf));
+	ptr = 0;
   return 0;
 }
 
@@ -26,12 +33,38 @@ static int my_close(struct inode *i, struct file *f)
 static ssize_t my_read(struct file *f, char __user *buf, size_t len, loff_t *off)
 {
   printk(KERN_INFO "Driver: read()\n");
+	if(len <= 0){
+		return 0;
+	}
+
+	if(*off + len >= BUF_SIZE){
+		printk(KERNEL_INFO "Warning: ch_drv read(): buffer overflow, cleaning...");
+		in_buf = memset(in_buf, 0, sizeof(in_buf));
+		*off = 0;
+	}
+
+	if(*off + len >= BUF_SIZE){
+		printk(KERNEL_INFO "Error: too large buffer size");
+		return -EFAULT;
+	}
+
+	if(copy_to_user(buf, in_buf + *off, len)){
+		return -EFAULT;
+	}
+
+	*off += len;
+
   return 0;
 }
 
 static ssize_t my_write(struct file *f, const char __user *buf,  size_t len, loff_t *off)
 {
-  printk(KERN_INFO "Driver: write()\n");
+  printk(KERN_INFO "Driver: write()\n");	
+	if(copy_from_user(0, buf + *off, len)){
+		return -EFAULT;
+	}
+	*off += len;
+	in_buf[ptr++] = len;
   return len;
 }
 
