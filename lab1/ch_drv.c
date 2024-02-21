@@ -56,7 +56,7 @@ static ssize_t my_read(struct file *f, char __user *buf, size_t len, loff_t *off
 
 	*off += len;
 
-  return 0;
+  return len;
 }
 
 static ssize_t my_write(struct file *f, const char __user *buf,  size_t len, loff_t *off)
