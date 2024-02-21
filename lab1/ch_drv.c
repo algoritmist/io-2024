@@ -28,15 +28,6 @@ static int my_close(struct inode *i, struct file *f)
   return 0;
 }
 
-void write_int(int x){
-  if(x == 0){
-    in_buf[ptr++] = ' '; 
-    return;
-  }
-  write_int(x / 10);
-  in_buf[ptr++] = x % 10 + 48;
-}
-
 static ssize_t my_read(struct file *f, char __user *buf, size_t len, loff_t *off)
 {
   printk(KERN_INFO "Driver: read()\n");
