@@ -38,13 +38,13 @@ static ssize_t my_read(struct file *f, char __user *buf, size_t len, loff_t *off
 	}
 
 	if(*off + len >= BUF_SIZE){
-		printk(KERNEL_INFO "Warning: ch_drv read(): buffer overflow, cleaning...");
+		printk(KERN_INFO "Warning: ch_drv read(): buffer overflow, cleaning...");
 		in_buf = memset(in_buf, 0, sizeof(in_buf));
 		*off = 0;
 	}
 
 	if(*off + len >= BUF_SIZE){
-		printk(KERNEL_INFO "Error: too large buffer size");
+		printk(KERN_INFO "Error: too large buffer size");
 		return -EFAULT;
 	}
 
