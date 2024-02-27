@@ -15,11 +15,19 @@
 
 ## Инструкция по сборке ##
 
+```sh
 make
-
-insmod ch_drv
+sudo insmod ch_drv
+...
+sudo rmmod ch_drv
+```
 
 ## Инструкция пользователя ##
 ...
 
 ## Примеры использования ##
+```sh
+sudo chmod 777 /dev/var1
+echo "Hello" > /dev/var1
+cat /dev/var1
+```

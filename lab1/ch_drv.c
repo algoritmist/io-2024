@@ -54,7 +54,7 @@ static ssize_t my_write(struct file *f, const char __user *buf,  size_t len, lof
 	}
 
   int rem = BUF_SIZE - ptr;
-  if((1 << rem) < len){
+  if(rem + 1 < len){
     printk("Achtung: overflow, cleaning buffer...");
     memset(in_buf, 0, sizeof(in_buf));
     ptr = 0;
@@ -87,7 +87,7 @@ static int __init ch_drv_init(void)
 		unregister_chrdev_region(first, 1);
 		return -1;
 	  }
-    if (device_create(cl, NULL, first, NULL, "mychdev") == NULL)
+    if (device_create(cl, NULL, first, NULL, "var1") == NULL)
 	  {
 		class_destroy(cl);
 		unregister_chrdev_region(first, 1);
